@@ -1,5 +1,6 @@
 package com.example.android.concurrency;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -7,9 +8,6 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,8 +17,6 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView mScroll;
     private TextView mLog;
     private ProgressBar mProgressBar;
-
-    ExecutorService mExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,21 +30,15 @@ public class MainActivity extends AppCompatActivity {
 
         mLog.setText(R.string.lorem_ipsum);
 
-        mExecutor = Executors.newFixedThreadPool(5);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mExecutor.shutdown();
     }
 
     //  Run some code, called from the onClick event in the layout file
     public void runCode(View v) {
-        for (int i = 0; i < 10; i++) {
-            Runnable worker = new BackgroundTask(i);
-            mExecutor.execute(worker);
-        }
+        MyTask task = new MyTask();
+        task.execute("Red", "Green", "Blue");
+        MyTask task2 = new MyTask();
+        task2.execute("Pink", "Orange", "Purple");
+
     }
 
     //  Clear the output, called from the onClick event in the layout file
@@ -58,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //  Log output to logcat and the screen
+    @SuppressWarnings("unused")
     private void log(String message) {
         Log.i(TAG, message);
         mLog.append(message + "\n");
@@ -81,4 +72,21 @@ public class MainActivity extends AppCompatActivity {
             mProgressBar.setVisibility(View.INVISIBLE);
         }
     }
+
+    class MyTask extends AsyncTask<String, String, String> {
+        @Override
+        protected String doInBackground(String... strings) {
+            for (String value :
+                    strings) {
+                Log.i(TAG, "doInBackground: " + value);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+    }
+
 }
