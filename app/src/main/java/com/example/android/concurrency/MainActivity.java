@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressWarnings("unused")
     private void displayProgressBar(boolean display) {
         if (display) {
             mProgressBar.setVisibility(View.VISIBLE);
