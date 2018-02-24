@@ -1,13 +1,15 @@
 package com.example.android.concurrency;
 
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,6 +19,8 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView mScroll;
     private TextView mLog;
     private ProgressBar mProgressBar;
+
+    ExecutorService mExecutor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,30 +33,22 @@ public class MainActivity extends AppCompatActivity {
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
 
         mLog.setText(R.string.lorem_ipsum);
+
+        mExecutor = Executors.newFixedThreadPool(5);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mExecutor.shutdown();
     }
 
     //  Run some code, called from the onClick event in the layout file
     public void runCode(View v) {
-
-        log("Running code");
-        displayProgressBar(true);
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                Log.i(TAG, "run: starting thread for 4 seconds");
-                try {
-                    Thread.sleep(4000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                Log.i(TAG, "run: ending thread");
-            }
-        };
-//        Handler handler = new Handler();
-//        handler.postDelayed(runnable, 3000);
-        Thread thread = new Thread(runnable);
-        thread.start();
-
+        for (int i = 0; i < 10; i++) {
+            Runnable worker = new BackgroundTask(i);
+            mExecutor.execute(worker);
+        }
     }
 
     //  Clear the output, called from the onClick event in the layout file
